@@ -27,8 +27,8 @@ app.config['SECRET_KEY'] = 'persona-digital-twin-secret-key'
 # Use /tmp/persona.db for Vercel serverless deployment
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////tmp/persona.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = 'static/uploads'
-
+# Use /tmp/uploads for Vercel serverless deployment
+app.config['UPLOAD_FOLDER'] = '/tmp/uploads'
 
 db = SQLAlchemy(app)
 
