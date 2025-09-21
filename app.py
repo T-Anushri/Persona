@@ -21,7 +21,7 @@ except ImportError:
 
 from config import Config
 
-app = Flask(__name__, static_folder='static', template_folder='templates')
+app = Flask(__name__, static_folder='static', template_folder='templates', instance_path='/tmp/instance')
 app.config.from_object(Config)
 app.config['SECRET_KEY'] = 'persona-digital-twin-secret-key'
 # Use /tmp/persona.db for Vercel serverless deployment
