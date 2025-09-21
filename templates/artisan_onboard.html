@@ -1,0 +1,753 @@
+{% extends "base.html" %}
+
+{% block title %}Create Your Digital Twin - Persona{% endblock %}
+
+{% block extra_css %}
+<style>
+.persona-builder {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 100px 0 50px;
+}
+
+.builder-container {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.builder-header {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+.builder-content {
+    display: flex;
+    min-height: 600px;
+}
+
+.builder-panel {
+    flex: 1;
+    padding: 30px;
+    border-right: 1px solid #e5e7eb;
+}
+
+.preview-panel {
+    flex: 1;
+    padding: 30px;
+    background: #f8fafc;
+}
+
+.slider-group {
+    margin-bottom: 25px;
+}
+
+.slider-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.slider-value {
+    background: #6366f1;
+    color: white;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+.custom-slider {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    background: #e5e7eb;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.custom-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #6366f1;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+}
+
+.custom-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: #6366f1;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+}
+
+.tone-selector {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.tone-option {
+    padding: 12px;
+    border: 2px solid #e5e7eb;
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.tone-option:hover {
+    border-color: #6366f1;
+    background: #f0f4ff;
+}
+
+.tone-option.active {
+    border-color: #6366f1;
+    background: #6366f1;
+    color: white;
+}
+
+.preview-card {
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.preview-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin: 0 auto 15px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.preview-bio {
+    background: #f8fafc;
+    padding: 20px;
+    border-radius: 10px;
+    border-left: 4px solid #6366f1;
+    margin: 15px 0;
+    font-style: italic;
+    line-height: 1.6;
+}
+
+.persona-traits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 15px;
+}
+
+.trait-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.step-indicator {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 30px;
+}
+
+.step {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 10px;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.step.active {
+    background: #6366f1;
+    color: white;
+}
+
+.step.completed {
+    background: #10b981;
+    color: white;
+}
+
+.step.pending {
+    background: #e5e7eb;
+    color: #6b7280;
+}
+
+.form-section {
+    display: none;
+}
+
+.form-section.active {
+    display: block;
+}
+
+.cultural-input {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.live-preview-indicator {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: #10b981;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.builder-actions {
+    padding: 20px 30px;
+    background: #f8fafc;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="persona-builder">
+    <div class="container">
+        <div class="builder-container">
+            <div class="builder-header">
+                <h1><i class="fas fa-robot me-2"></i>Create Your Digital Twin</h1>
+                <p class="mb-0">Define your persona's voice, style, and storytelling approach</p>
+            </div>
+            
+            <!-- Step Indicator -->
+            <div class="step-indicator mt-4">
+                <div class="step active" id="step1">1</div>
+                <div class="step pending" id="step2">2</div>
+                <div class="step pending" id="step3">3</div>
+            </div>
+            
+            <div class="builder-content">
+                <!-- Builder Panel -->
+                <div class="builder-panel">
+                    <form id="personaBuilderForm">
+                        <!-- Step 1: Basic Info -->
+                        <div class="form-section active" id="section1">
+                            <h3 class="mb-4"><i class="fas fa-user me-2"></i>Basic Information</h3>
+                            
+                            <div class="mb-3">
+                                <label for="artisanName" class="form-label">Your Name</label>
+                                <input type="text" class="form-control" id="artisanName" placeholder="e.g., Maya Sharma" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="craftType" class="form-label">Craft Type</label>
+                                <select class="form-select" id="craftType" required>
+                                    <option value="">Select your craft</option>
+                                    <option value="Pottery">Pottery</option>
+                                    <option value="Textiles">Textiles & Weaving</option>
+                                    <option value="Jewelry">Jewelry Making</option>
+                                    <option value="Woodwork">Woodwork</option>
+                                    <option value="Metalwork">Metalwork</option>
+                                    <option value="Painting">Painting & Art</option>
+                                    <option value="Sculpture">Sculpture</option>
+                                    <option value="Leather">Leather Craft</option>
+                                    <option value="Glass">Glass Work</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="location" class="form-label">Location</label>
+                                <input type="text" class="form-control" id="location" placeholder="e.g., Jaipur, Rajasthan" required>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="culturalBackground" class="form-label">Cultural Background (Optional)</label>
+                                <textarea class="form-control cultural-input" id="culturalBackground" rows="3" 
+                                         placeholder="Tell us about your cultural heritage and how it influences your craft..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 2: Persona Settings -->
+                        <div class="form-section" id="section2">
+                            <h3 class="mb-4"><i class="fas fa-sliders-h me-2"></i>Persona Builder</h3>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">Tone & Voice</label>
+                                <div class="tone-selector">
+                                    <div class="tone-option" data-tone="friendly">
+                                        <i class="fas fa-smile mb-2"></i>
+                                        <div>Friendly</div>
+                                        <small>Warm and approachable</small>
+                                    </div>
+                                    <div class="tone-option" data-tone="formal">
+                                        <i class="fas fa-graduation-cap mb-2"></i>
+                                        <div>Formal</div>
+                                        <small>Professional and refined</small>
+                                    </div>
+                                    <div class="tone-option" data-tone="poetic">
+                                        <i class="fas fa-feather mb-2"></i>
+                                        <div>Poetic</div>
+                                        <small>Artistic and expressive</small>
+                                    </div>
+                                    <div class="tone-option active" data-tone="warm">
+                                        <i class="fas fa-heart mb-2"></i>
+                                        <div>Warm</div>
+                                        <small>Personal and caring</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="slider-group">
+                                <div class="slider-label">
+                                    <span><i class="fas fa-book-open me-2"></i>Storytelling Depth</span>
+                                    <span class="slider-value" id="depthValue">7</span>
+                                </div>
+                                <input type="range" class="custom-slider" id="storytellingDepth" 
+                                       min="1" max="10" value="7">
+                                <div class="d-flex justify-content-between mt-1">
+                                    <small class="text-muted">Brief</small>
+                                    <small class="text-muted">Rich & Detailed</small>
+                                </div>
+                            </div>
+                            
+                            <div class="slider-group">
+                                <div class="slider-label">
+                                    <span><i class="fas fa-palette me-2"></i>Cultural Emphasis</span>
+                                    <span class="slider-value" id="cultureValue">6</span>
+                                </div>
+                                <input type="range" class="custom-slider" id="culturalEmphasis" 
+                                       min="1" max="10" value="6">
+                                <div class="d-flex justify-content-between mt-1">
+                                    <small class="text-muted">Modern Focus</small>
+                                    <small class="text-muted">Traditional Heritage</small>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="communicationStyle" class="form-label">Communication Style</label>
+                                <select class="form-select" id="communicationStyle">
+                                    <option value="conversational">Conversational</option>
+                                    <option value="storytelling">Storytelling</option>
+                                    <option value="educational">Educational</option>
+                                    <option value="inspirational">Inspirational</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 3: Review & Finalize -->
+                        <div class="form-section" id="section3">
+                            <h3 class="mb-4"><i class="fas fa-check-circle me-2"></i>Review & Finalize</h3>
+                            
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Review your digital twin's personality and make any final adjustments.
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="craftHistory" class="form-label">Your Craft Journey (Optional)</label>
+                                <textarea class="form-control cultural-input" id="craftHistory" rows="3" 
+                                         placeholder="Share your journey as an artisan - when you started, who taught you, special milestones..."></textarea>
+                            </div>
+                            
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="agreeTerms" required>
+                                <label class="form-check-label" for="agreeTerms">
+                                    I agree that my digital twin will represent me authentically and professionally
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                
+                <!-- Live Preview Panel -->
+                <div class="preview-panel">
+                    <div class="position-relative">
+                        <div class="live-preview-indicator">LIVE PREVIEW</div>
+                        
+                        <div class="preview-card">
+                            <div class="text-center">
+                                <div class="preview-avatar" id="previewAvatar">MA</div>
+                                <h5 id="previewName">Maya Sharma</h5>
+                                <p class="text-muted mb-0" id="previewCraft">Pottery Artisan • Jaipur, Rajasthan</p>
+                            </div>
+                            
+                            <div class="preview-bio" id="previewBio">
+                                Welcome to my world! I'm Maya, and pottery is not just my craft - it's my heart's language. 
+                                From my cozy workshop in Jaipur, I pour love into every piece I create.
+                            </div>
+                            
+                            <div class="persona-traits" id="previewTraits">
+                                <span class="trait-badge bg-primary text-white">Warm Tone</span>
+                                <span class="trait-badge bg-secondary text-white">Rich Storytelling</span>
+                                <span class="trait-badge bg-success text-white">Cultural Heritage</span>
+                            </div>
+                        </div>
+                        
+                        <div class="preview-card">
+                            <h6><i class="fas fa-shopping-bag me-2"></i>Sample Product Description</h6>
+                            <div class="bg-light p-3 rounded" id="sampleProduct">
+                                <strong>Handcrafted Blue Pottery Vase</strong>
+                                <p class="mb-0 mt-2" id="sampleDescription">
+                                    I'm so excited to share this special pottery piece with you! This beautiful traditional blue pottery vase 
+                                    with intricate floral patterns. Made with love in my workshop, it's ready to bring joy and beauty to your space.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div class="preview-card">
+                            <h6><i class="fas fa-chart-bar me-2"></i>Persona Analytics</h6>
+                            <div class="row text-center">
+                                <div class="col-4">
+                                    <div class="fw-bold text-primary" id="toneScore">85%</div>
+                                    <small class="text-muted">Tone Match</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="fw-bold text-success" id="depthScore">70%</div>
+                                    <small class="text-muted">Story Depth</small>
+                                </div>
+                                <div class="col-4">
+                                    <div class="fw-bold text-warning" id="cultureScore">60%</div>
+                                    <small class="text-muted">Cultural Rich</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Builder Actions -->
+            <div class="builder-actions">
+                <button type="button" class="btn btn-outline-secondary" id="prevBtn" onclick="previousStep()" style="display: none;">
+                    <i class="fas fa-arrow-left me-2"></i>Previous
+                </button>
+                
+                <div class="ms-auto">
+                    <button type="button" class="btn btn-primary" id="nextBtn" onclick="nextStep()">
+                        Next <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                    <button type="button" class="btn btn-success" id="createBtn" onclick="createPersona()" style="display: none;">
+                        <i class="fas fa-magic me-2"></i>Create My Digital Twin
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentStep = 1;
+let personaData = {
+    tone: 'warm',
+    storytelling_depth: 7,
+    cultural_emphasis: 6,
+    communication_style: 'conversational'
+};
+
+// Initialize
+$(document).ready(function() {
+    updatePreview();
+    
+    // Tone selector
+    $('.tone-option').click(function() {
+        $('.tone-option').removeClass('active');
+        $(this).addClass('active');
+        personaData.tone = $(this).data('tone');
+        updatePreview();
+    });
+    
+    // Sliders
+    $('#storytellingDepth').on('input', function() {
+        const value = $(this).val();
+        $('#depthValue').text(value);
+        personaData.storytelling_depth = parseInt(value);
+        updatePreview();
+    });
+    
+    $('#culturalEmphasis').on('input', function() {
+        const value = $(this).val();
+        $('#cultureValue').text(value);
+        personaData.cultural_emphasis = parseInt(value);
+        updatePreview();
+    });
+    
+    // Form inputs
+    $('#artisanName, #craftType, #location, #culturalBackground, #communicationStyle').on('input change', function() {
+        updatePreview();
+    });
+});
+
+function updatePreview() {
+    const name = $('#artisanName').val() || 'Maya Sharma';
+    const craft = $('#craftType').val() || 'Pottery';
+    const location = $('#location').val() || 'Jaipur, Rajasthan';
+    const cultural = $('#culturalBackground').val();
+    
+    // Update preview header
+    $('#previewName').text(name);
+    $('#previewCraft').text(`${craft} Artisan • ${location}`);
+    $('#previewAvatar').text(name.split(' ').map(n => n[0]).join('').toUpperCase());
+    
+    // Generate preview bio
+    const artisanData = { name, craft_type: craft, location };
+    generatePreviewBio(artisanData, personaData);
+    
+    // Update traits
+    updatePersonaTraits();
+    
+    // Update analytics
+    updateAnalytics();
+}
+
+function generatePreviewBio(artisanData, personaData) {
+    $.ajax({
+        url: '/api/persona/preview',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            name: artisanData.name,
+            craft_type: artisanData.craft_type,
+            location: artisanData.location,
+            persona: personaData
+        }),
+        success: function(response) {
+            if (response.success) {
+                $('#previewBio').text(response.preview_bio);
+                
+                // Update sample product description
+                const sampleDesc = generateSampleProductDescription(personaData.tone);
+                $('#sampleDescription').text(sampleDesc);
+            }
+        }
+    });
+}
+
+function generateSampleProductDescription(tone) {
+    const descriptions = {
+        friendly: "This beautiful pottery piece is one of my favorites to create! Beautiful traditional blue pottery vase with intricate floral patterns. I put so much care into every detail, and I hope you'll love it as much as I enjoyed making it.",
+        formal: "This pottery represents the finest in traditional craftsmanship. Beautiful traditional blue pottery vase with intricate floral patterns. Each element has been carefully considered to ensure both aesthetic appeal and functional excellence.",
+        poetic: "Behold this pottery, born from inspiration and shaped by skilled hands. Beautiful traditional blue pottery vase with intricate floral patterns. It carries within it the essence of creativity and the soul of artisanal tradition.",
+        warm: "I'm so excited to share this special pottery piece with you! Beautiful traditional blue pottery vase with intricate floral patterns. Made with love in my workshop, it's ready to bring joy and beauty to your space."
+    };
+    
+    return descriptions[tone] || descriptions.warm;
+}
+
+function updatePersonaTraits() {
+    const traits = [];
+    
+    // Tone trait
+    traits.push(`<span class="trait-badge bg-primary text-white">${personaData.tone.charAt(0).toUpperCase() + personaData.tone.slice(1)} Tone</span>`);
+    
+    // Storytelling depth
+    if (personaData.storytelling_depth >= 7) {
+        traits.push(`<span class="trait-badge bg-secondary text-white">Rich Storytelling</span>`);
+    } else if (personaData.storytelling_depth >= 4) {
+        traits.push(`<span class="trait-badge bg-secondary text-white">Moderate Detail</span>`);
+    } else {
+        traits.push(`<span class="trait-badge bg-secondary text-white">Concise Style</span>`);
+    }
+    
+    // Cultural emphasis
+    if (personaData.cultural_emphasis >= 7) {
+        traits.push(`<span class="trait-badge bg-success text-white">Cultural Heritage</span>`);
+    } else if (personaData.cultural_emphasis >= 4) {
+        traits.push(`<span class="trait-badge bg-success text-white">Modern Traditional</span>`);
+    } else {
+        traits.push(`<span class="trait-badge bg-success text-white">Contemporary Focus</span>`);
+    }
+    
+    $('#previewTraits').html(traits.join(''));
+}
+
+function updateAnalytics() {
+    // Tone score based on consistency
+    const toneScore = Math.min(95, 70 + (personaData.storytelling_depth * 2));
+    $('#toneScore').text(toneScore + '%');
+    
+    // Depth score
+    const depthScore = personaData.storytelling_depth * 10;
+    $('#depthScore').text(depthScore + '%');
+    
+    // Culture score
+    const cultureScore = personaData.cultural_emphasis * 10;
+    $('#cultureScore').text(cultureScore + '%');
+}
+
+function nextStep() {
+    if (currentStep < 3) {
+        // Validate current step
+        if (validateStep(currentStep)) {
+            currentStep++;
+            updateStepDisplay();
+        }
+    }
+}
+
+function previousStep() {
+    if (currentStep > 1) {
+        currentStep--;
+        updateStepDisplay();
+    }
+}
+
+function validateStep(step) {
+    if (step === 1) {
+        const name = $('#artisanName').val();
+        const craft = $('#craftType').val();
+        const location = $('#location').val();
+        
+        if (!name || !craft || !location) {
+            alert('Please fill in all required fields.');
+            return false;
+        }
+    }
+    
+    if (step === 3) {
+        if (!$('#agreeTerms').is(':checked')) {
+            alert('Please agree to the terms to continue.');
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+function updateStepDisplay() {
+    // Update step indicators
+    $('.step').removeClass('active completed').addClass('pending');
+    
+    for (let i = 1; i < currentStep; i++) {
+        $(`#step${i}`).removeClass('pending active').addClass('completed');
+    }
+    $(`#step${currentStep}`).removeClass('pending completed').addClass('active');
+    
+    // Update form sections
+    $('.form-section').removeClass('active');
+    $(`#section${currentStep}`).addClass('active');
+    
+    // Update buttons
+    $('#prevBtn').toggle(currentStep > 1);
+    $('#nextBtn').toggle(currentStep < 3);
+    $('#createBtn').toggle(currentStep === 3);
+}
+
+function createPersona() {
+    if (!validateStep(3)) return;
+    
+    const formData = {
+        name: $('#artisanName').val(),
+        craft_type: $('#craftType').val(),
+        location: $('#location').val(),
+        cultural_background: $('#culturalBackground').val(),
+        craft_history: $('#craftHistory').val(),
+        persona: personaData
+    };
+    
+    $('#createBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-2"></i>Creating...');
+    
+    $.ajax({
+        url: '/api/artisan/create',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: function(response) {
+            if (response.success) {
+                showSuccessModal(response.generated_bio);
+            } else {
+                alert('Error: ' + response.message);
+                $('#createBtn').prop('disabled', false).html('<i class="fas fa-magic me-2"></i>Create My Digital Twin');
+            }
+        },
+        error: function() {
+            alert('An error occurred. Please try again.');
+            $('#createBtn').prop('disabled', false).html('<i class="fas fa-magic me-2"></i>Create My Digital Twin');
+        }
+    });
+}
+
+function showSuccessModal(generatedBio) {
+    const modal = `
+        <div class="modal fade" id="successModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title"><i class="fas fa-check-circle me-2"></i>Digital Twin Created Successfully!</h5>
+                    </div>
+                    <div class="modal-body">
+                        <div class="text-center mb-4">
+                            <div class="success-icon">
+                                <i class="fas fa-robot fa-3x text-success"></i>
+                            </div>
+                            <h4 class="mt-3">Your Digital Twin is Ready!</h4>
+                            <p class="text-muted">Here's how your AI persona will represent you:</p>
+                        </div>
+                        
+                        <div class="generated-bio bg-light p-3 rounded">
+                            <h6><i class="fas fa-quote-left me-2"></i>Your AI-Generated Bio:</h6>
+                            <p class="mb-0">${generatedBio}</p>
+                        </div>
+                        
+                        <div class="next-steps mt-4">
+                            <h6><i class="fas fa-list me-2"></i>Next Steps:</h6>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check text-success me-2"></i>Add your first products</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Set up your artisan dashboard</li>
+                                <li><i class="fas fa-check text-success me-2"></i>Go live on the marketplace</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="/artisan/dashboard" class="btn btn-primary">
+                            <i class="fas fa-tachometer-alt me-2"></i>Go to Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    $('body').append(modal);
+    $('#successModal').modal('show');
+    
+    $('#successModal').on('hidden.bs.modal', function() {
+        $(this).remove();
+        window.location.href = '/artisan/dashboard';
+    });
+}
+</script>
+{% endblock %}

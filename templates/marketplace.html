@@ -1,0 +1,479 @@
+{% extends "base.html" %}
+
+{% block title %}Marketplace - Persona{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Story Scroll Styles - Fixed Layout */
+.story-scroll-view {
+    padding-top: 80px; /* Account for navbar */
+    min-height: 100vh;
+    background: #f8fafc;
+}
+
+.story-progress {
+    position: fixed;
+    top: 76px;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+.story-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #6366f1, #8b5cf6);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.story-counter {
+    position: fixed;
+    top: 90px;
+    right: 20px;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    z-index: 1000;
+}
+
+.story-scroll-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.story-card {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+    overflow: hidden;
+    display: none;
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.story-card.active {
+    display: block;
+}
+
+.story-header {
+    padding: 20px 20px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.artisan-info {
+    display: flex;
+    align-items: center;
+}
+
+.artisan-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-right: 15px;
+    border: 3px solid #6366f1;
+    object-fit: cover;
+}
+
+.artisan-details h4 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #1f2937;
+}
+
+.artisan-details p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.story-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: #f3f4f6;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.btn-icon:hover {
+    background: #6366f1;
+    color: white;
+    transform: scale(1.1);
+}
+
+.story-content {
+    padding: 20px;
+}
+
+.story-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 15px;
+}
+
+.story-text {
+    color: #4b5563;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.cultural-context {
+    background: #f0f9ff;
+    padding: 12px 16px;
+    border-radius: 10px;
+    color: #0369a1;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+}
+
+.story-products {
+    padding: 0 20px 20px;
+}
+
+.products-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 15px;
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.product-card-mini {
+    background: #f9fafb;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.product-card-mini:hover {
+    transform: translateY(-5px);
+}
+
+.product-image {
+    width: 100%;
+    height: 120px;
+    object-fit: cover;
+}
+
+.product-info {
+    padding: 12px;
+}
+
+.product-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 8px 0;
+}
+
+.product-price {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #059669;
+    margin: 0 0 10px 0;
+}
+
+.story-stats {
+    padding: 15px 20px;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-around;
+    background: #f9fafb;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #6b7280;
+    font-size: 0.9rem;
+}
+
+.like-btn {
+    background: none;
+    border: none;
+    color: #6b7280;
+    font-size: 1.2rem;
+    transition: color 0.3s ease;
+}
+
+.like-btn:hover,
+.like-btn.liked {
+    color: #ef4444;
+}
+
+.story-footer {
+    padding: 20px;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.story-footer .btn {
+    flex: 1;
+    max-width: 200px;
+}
+
+/* Navigation Controls */
+.story-nav {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    z-index: 1000;
+}
+
+.story-nav .btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.8);
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    transition: all 0.3s ease;
+}
+
+.story-nav .btn:hover {
+    background: #6366f1;
+    transform: scale(1.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .story-scroll-container {
+        padding: 10px;
+    }
+    
+    .story-card {
+        margin-bottom: 20px;
+    }
+    
+    .story-header {
+        padding: 15px 15px 0;
+    }
+    
+    .story-content {
+        padding: 15px;
+    }
+    
+    .story-products {
+        padding: 0 15px 15px;
+    }
+    
+    .products-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 10px;
+    }
+    
+    .story-footer {
+        padding: 15px;
+        flex-direction: column;
+    }
+    
+    .story-footer .btn {
+        max-width: none;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Navigation Tabs -->
+<div class="container-fluid p-0">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <span class="navbar-brand">
+                <i class="fas fa-store me-2"></i>Marketplace
+            </span>
+            
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link active" href="{{ url_for('marketplace', view='scroll') }}">
+                    <i class="fas fa-mobile-alt me-1"></i>Story Scroll
+                </a>
+            </div>
+        </div>
+    </nav>
+</div>
+
+<!-- Story Scroll View -->
+<div class="story-scroll-view">
+    <!-- Progress indicator -->
+    <div class="story-progress">
+        <div class="story-progress-bar"></div>
+    </div>
+    <div class="story-counter">1 / {{ artisans_with_products|length if artisans_with_products else 0 }}</div>
+    
+    <!-- Story container -->
+    <div class="story-scroll-container">
+        {% if artisans_with_products %}
+        {% for artisan in artisans_with_products %}
+        <div class="story-card {% if loop.first %}active{% endif %}" data-story-index="{{ loop.index0 }}">
+            <div class="story-header">
+                <div class="artisan-info">
+                    <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150&h=150&fit=crop&crop=face" 
+                         alt="{{ artisan.name or 'Artisan' }}" class="artisan-avatar">
+                    <div class="artisan-details">
+                        <h4 class="artisan-name">{{ artisan.name or 'Anonymous Artisan' }}</h4>
+                        <p class="artisan-craft">{{ artisan.craft_type or 'Craftsperson' }} • {{ artisan.location or 'India' }}</p>
+                    </div>
+                </div>
+                <div class="story-actions">
+                    <button class="btn-icon follow-btn" data-artisan-id="{{ artisan.id }}">
+                        <i class="fas fa-user-plus"></i>
+                    </button>
+                    <button class="btn-icon share-btn" data-story-id="{{ artisan.id }}">
+                        <i class="fas fa-share"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="story-content">
+                <h3 class="story-title">{{ artisan.persona.story_title if artisan.persona and artisan.persona.story_title else 'Artisan Story' }}</h3>
+                <p class="story-text">{{ artisan.bio or 'Passionate artisan creating beautiful handcrafted pieces with traditional techniques passed down through generations.' }}</p>
+                <div class="cultural-context">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <span>Traditional {{ artisan.craft_type or 'Craft' }} from {{ artisan.location or 'India' }}</span>
+                </div>
+            </div>
+            
+            <div class="story-products">
+                <h5 class="products-title">Featured Creations</h5>
+                <div class="products-grid">
+                    {% if artisan.products %}
+                    {% for product in artisan.products[:3] %}
+                    <div class="product-card-mini" data-product-id="{{ product.id }}">
+                        <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop" 
+                             alt="{{ product.name or 'Product' }}" class="product-image">
+                        <div class="product-info">
+                            <h6 class="product-name">{{ product.name or 'Handcrafted Item' }}</h6>
+                            <p class="product-price">₹{{ "{:,}".format(product.price|int if product.price else 1000) }}</p>
+                            <button class="btn btn-primary btn-sm add-to-bundle-btn">
+                                <i class="fas fa-plus me-1"></i>Add to Bundle
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="product-card-mini">
+                        <img src="https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=300&h=300&fit=crop" 
+                             alt="Sample Product" class="product-image">
+                        <div class="product-info">
+                            <h6 class="product-name">Coming Soon</h6>
+                            <p class="product-price">₹1,000</p>
+                            <button class="btn btn-secondary btn-sm" disabled>
+                                <i class="fas fa-clock me-1"></i>Soon
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="story-stats">
+                <div class="stat-item">
+                    <button class="btn-icon like-btn" data-story-id="{{ artisan.id }}">
+                        <i class="far fa-heart"></i>
+                    </button>
+                    <span class="stat-count">{{ range(50, 500) | random }}</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-eye"></i>
+                    <span class="stat-count">{{ range(100, 2000) | random }}</span>
+                </div>
+                <div class="stat-item">
+                    <i class="fas fa-shopping-bag"></i>
+                    <span class="stat-count">{{ range(5, 100) | random }} sold</span>
+                </div>
+            </div>
+            
+            <div class="story-footer">
+                <button class="btn btn-outline-primary chat-btn" data-artisan-id="{{ artisan.id }}">
+                    <i class="fas fa-comments me-2"></i>Chat with {{ artisan.name or 'Artisan' }}
+                </button>
+                <button class="btn btn-primary view-profile-btn" data-artisan-id="{{ artisan.id }}">
+                    <i class="fas fa-user me-2"></i>View Profile
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <!-- Empty state when no artisans -->
+        <div class="story-card active">
+            <div class="story-content">
+                <h3 class="story-title">Welcome to Persona Marketplace</h3>
+                <p class="story-text">No artisan stories available yet. Check back soon for amazing handcrafted products and inspiring stories!</p>
+                <div class="story-footer">
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="fas fa-home me-2"></i>Go Home
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Navigation Controls -->
+    <div class="story-nav">
+        <button class="btn prev-story-btn" onclick="storyScroll.prevStory()">
+            <i class="fas fa-chevron-up"></i>
+        </button>
+        <button class="btn next-story-btn" onclick="storyScroll.nextStory()">
+            <i class="fas fa-chevron-down"></i>
+        </button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/story-scroll.js') }}"></script>
+<script>
+// Initialize story scroll globally
+let storyScroll;
+document.addEventListener('DOMContentLoaded', () => {
+    if (document.querySelector('.story-scroll-container')) {
+        storyScroll = new StoryScroll();
+    }
+});
+</script>
+{% endblock %}

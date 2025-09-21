@@ -1,0 +1,693 @@
+{% extends "base.html" %}
+
+{% block title %}My Products - Persona{% endblock %}
+
+{% block extra_css %}
+<style>
+.products-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 60px 0 40px;
+    margin-top: 56px;
+}
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 25px;
+    margin: 30px 0;
+}
+
+.product-item {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+    cursor: pointer;
+}
+
+.product-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+}
+
+.product-image {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(45deg, #f0f9ff, #e0f2fe);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: #0369a1;
+}
+
+.product-content {
+    padding: 20px;
+}
+
+.product-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 10px;
+}
+
+.product-description {
+    color: #6b7280;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    margin-bottom: 15px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.product-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.product-price {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #059669;
+}
+
+.product-stock {
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+.product-status {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.status-draft {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-published {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-sold_out {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.product-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.product-actions .btn {
+    flex: 1;
+    font-size: 0.9rem;
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 10px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+.filter-tab {
+    padding: 10px 20px;
+    border: 2px solid #e5e7eb;
+    border-radius: 25px;
+    background: white;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: 500;
+}
+
+.filter-tab.active {
+    border-color: #6366f1;
+    background: #6366f1;
+    color: white;
+}
+
+.filter-tab:hover {
+    border-color: #6366f1;
+    color: #6366f1;
+}
+
+.filter-tab.active:hover {
+    color: white;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6b7280;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    color: #d1d5db;
+}
+
+.stats-bar {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.stats-row {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+}
+
+.stat-item {
+    flex: 1;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #6366f1;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #6b7280;
+    margin-top: 5px;
+}
+
+@media (max-width: 768px) {
+    .product-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .filter-tabs {
+        justify-content: center;
+    }
+    
+    .stats-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Products Header -->
+<section class="products-header">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1><i class="fas fa-box-open me-2"></i>My Products</h1>
+                <p class="mb-0">Manage and view all your handcrafted creations</p>
+            </div>
+            <div class="col-md-4 text-end">
+                <button class="btn btn-light btn-lg" onclick="showAddProductModal()">
+                    <i class="fas fa-plus me-2"></i>Add New Product
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Products Content -->
+<div class="container my-4">
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stats-row">
+            <div class="stat-item">
+                <div class="stat-value" id="totalProducts">{{ products|length }}</div>
+                <div class="stat-label">Total Products</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="publishedProducts">{{ products|selectattr("status", "equalto", "published")|list|length }}</div>
+                <div class="stat-label">Published</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="draftProducts">{{ products|selectattr("status", "equalto", "draft")|list|length }}</div>
+                <div class="stat-label">Drafts</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">₹{{ products|sum(attribute='price')|int|default(0) }}</div>
+                <div class="stat-label">Total Value</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+        <div class="filter-tab active" data-filter="all">
+            <i class="fas fa-th-large me-2"></i>All Products
+        </div>
+        <div class="filter-tab" data-filter="published">
+            <i class="fas fa-check-circle me-2"></i>Published
+        </div>
+        <div class="filter-tab" data-filter="draft">
+            <i class="fas fa-edit me-2"></i>Drafts
+        </div>
+        <div class="filter-tab" data-filter="sold_out">
+            <i class="fas fa-times-circle me-2"></i>Sold Out
+        </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="product-grid" id="productsGrid">
+        {% if products %}
+        {% for product in products %}
+        <div class="product-item" data-status="{{ product.status }}" data-product-id="{{ product.id }}" onclick="openProductCard({{ product.id }})">
+            <div class="product-status status-{{ product.status }}">
+                {% if product.status == 'published' %}
+                    <i class="fas fa-check-circle me-1"></i>Published
+                {% elif product.status == 'draft' %}
+                    <i class="fas fa-edit me-1"></i>Draft
+                {% elif product.status == 'sold_out' %}
+                    <i class="fas fa-times-circle me-1"></i>Sold Out
+                {% endif %}
+            </div>
+            
+            <div class="product-image">
+                <i class="fas fa-{{ 'palette' if product.category == 'Pottery' else 'cut' if product.category == 'Textiles' else 'gem' if product.category == 'Jewelry' else 'tree' if product.category == 'Woodwork' else 'star' }}"></i>
+            </div>
+            
+            <div class="product-content">
+                <h3 class="product-title">{{ product.name }}</h3>
+                <p class="product-description">
+                    {{ product.ai_enriched_description or product.description or 'No description available' }}
+                </p>
+                
+                <div class="product-meta">
+                    <div class="product-price">₹{{ "{:,}".format(product.price|int) }}</div>
+                    <div class="product-stock">
+                        <i class="fas fa-boxes me-1"></i>{{ product.stock_quantity }} in stock
+                    </div>
+                </div>
+                
+                <div class="product-actions">
+                    <button class="btn btn-outline-primary btn-sm" onclick="event.stopPropagation(); editProduct({{ product.id }})">
+                        <i class="fas fa-edit me-1"></i>Edit
+                    </button>
+                    <button class="btn btn-outline-success btn-sm" onclick="event.stopPropagation(); viewProduct({{ product.id }})">
+                        <i class="fas fa-eye me-1"></i>View
+                    </button>
+                    {% if product.status == 'draft' %}
+                    <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); publishProduct({{ product.id }})">
+                        <i class="fas fa-upload me-1"></i>Publish
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-box-open"></i>
+            <h3>No Products Yet</h3>
+            <p>Start creating your first handcrafted product to showcase your artistry!</p>
+            <button class="btn btn-primary btn-lg" onclick="showAddProductModal()">
+                <i class="fas fa-plus me-2"></i>Create Your First Product
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-plus me-2"></i>Add New Product
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addProductForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="productName" class="form-label">Product Name *</label>
+                                <input type="text" class="form-control" id="productName" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="productPrice" class="form-label">Price (₹) *</label>
+                                <input type="number" class="form-control" id="productPrice" required min="1">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="productDescription" class="form-label">Description *</label>
+                        <textarea class="form-control" id="productDescription" rows="3" required 
+                                 placeholder="Describe your handcrafted product..."></textarea>
+                        <small class="text-muted">
+                            <i class="fas fa-magic me-1"></i>Your AI assistant will enhance this with your persona's voice
+                        </small>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="productCategory" class="form-label">Category</label>
+                                <select class="form-select" id="productCategory">
+                                    <option value="{{ artisan.craft_type }}">{{ artisan.craft_type }}</option>
+                                    <option value="Pottery">Pottery</option>
+                                    <option value="Textiles">Textiles</option>
+                                    <option value="Jewelry">Jewelry</option>
+                                    <option value="Woodwork">Woodwork</option>
+                                    <option value="Metalwork">Metalwork</option>
+                                    <option value="Leather">Leather Goods</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="productStock" class="form-label">Stock Quantity</label>
+                                <input type="number" class="form-control" id="productStock" value="1" min="1">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="culturalSignificance" class="form-label">Cultural Story (Optional)</label>
+                        <textarea class="form-control" id="culturalSignificance" rows="2" 
+                                 placeholder="Share the cultural heritage or traditional techniques behind this product..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="addProduct()">
+                    <i class="fas fa-magic me-2"></i>Create with AI Enhancement
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Product Detail Modal -->
+<div class="modal fade" id="productDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="productDetailTitle">
+                    <i class="fas fa-box me-2"></i>Product Details
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="productDetailBody">
+                <div class="text-center">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p class="mt-2">Loading product details...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" id="editProductBtn">
+                    <i class="fas fa-edit me-2"></i>Edit Product
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    initializeFilters();
+});
+
+function initializeFilters() {
+    $('.filter-tab').on('click', function() {
+        const filter = $(this).data('filter');
+        
+        // Update active tab
+        $('.filter-tab').removeClass('active');
+        $(this).addClass('active');
+        
+        // Filter products
+        if (filter === 'all') {
+            $('.product-item').show();
+        } else {
+            $('.product-item').hide();
+            $(`.product-item[data-status="${filter}"]`).show();
+        }
+    });
+}
+
+function showAddProductModal() {
+    $('#addProductModal').modal('show');
+}
+
+function addProduct() {
+    const formData = {
+        name: $('#productName').val().trim(),
+        description: $('#productDescription').val().trim(),
+        price: parseFloat($('#productPrice').val()),
+        category: $('#productCategory').val(),
+        stock_quantity: parseInt($('#productStock').val()),
+        cultural_significance: $('#culturalSignificance').val().trim()
+    };
+
+    // Validation
+    if (!formData.name || !formData.description || !formData.price) {
+        showToast('Please fill in all required fields', 'error');
+        return;
+    }
+
+    if (formData.price <= 0) {
+        showToast('Price must be greater than 0', 'error');
+        return;
+    }
+
+    // Show loading state
+    const $submitBtn = $('.modal-footer .btn-primary');
+    const originalText = $submitBtn.html();
+    $submitBtn.html('<i class="fas fa-spinner fa-spin me-2"></i>Creating...').prop('disabled', true);
+
+    $.ajax({
+        url: '/api/products/create',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(formData),
+        success: function(response) {
+            if (response.success) {
+                $('#addProductModal').modal('hide');
+                showToast('Product created successfully with AI enhancement!', 'success');
+                
+                // Reload page to show new product
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1500);
+            } else {
+                showToast(response.message || 'Failed to create product', 'error');
+            }
+        },
+        error: function(xhr) {
+            const errorMsg = xhr.responseJSON?.message || 'Failed to create product';
+            showToast(errorMsg, 'error');
+        },
+        complete: function() {
+            // Reset button state
+            $submitBtn.html(originalText).prop('disabled', false);
+        }
+    });
+}
+
+function editProduct(productId) {
+    // Navigate to edit page or show edit modal
+    window.location.href = `/artisan/products/${productId}/edit`;
+}
+
+function viewProduct(productId) {
+    // Open product in new tab or modal
+    window.open(`/products/${productId}`, '_blank');
+}
+
+function publishProduct(productId) {
+    if (confirm('Are you sure you want to publish this product? It will be visible to customers.')) {
+        $.ajax({
+            url: `/api/products/${productId}/status`,
+            method: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify({ status: 'published' }),
+            success: function(response) {
+                if (response.success) {
+                    showToast('Product published successfully!', 'success');
+                    
+                    // Update product status in UI
+                    const $product = $(`.product-item[data-product-id="${productId}"]`);
+                    $product.attr('data-status', 'published');
+                    $product.find('.product-status')
+                           .removeClass('status-draft')
+                           .addClass('status-published')
+                           .html('<i class="fas fa-check-circle me-1"></i>Published');
+                    
+                    // Remove publish button
+                    $product.find('.btn-primary').remove();
+                    
+                    // Update stats
+                    updateStats();
+                } else {
+                    showToast(response.message || 'Failed to publish product', 'error');
+                }
+            },
+            error: function() {
+                showToast('Failed to publish product', 'error');
+            }
+        });
+    }
+}
+
+function updateStats() {
+    const totalProducts = $('.product-item').length;
+    const publishedProducts = $('.product-item[data-status="published"]').length;
+    const draftProducts = $('.product-item[data-status="draft"]').length;
+    
+    $('#totalProducts').text(totalProducts);
+    $('#publishedProducts').text(publishedProducts);
+    $('#draftProducts').text(draftProducts);
+}
+
+function showToast(message, type) {
+    const toastClass = type === 'success' ? 'bg-success' : 'bg-danger';
+    const icon = type === 'success' ? 'check-circle' : 'exclamation-triangle';
+    
+    const toast = `
+        <div class="toast align-items-center text-white ${toastClass} border-0" role="alert">
+            <div class="d-flex">
+                <div class="toast-body">
+                    <i class="fas fa-${icon} me-2"></i>${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+            </div>
+        </div>
+    `;
+    
+    if (!$('.toast-container').length) {
+        $('body').append('<div class="toast-container position-fixed bottom-0 end-0 p-3"></div>');
+    }
+    
+    $('.toast-container').append(toast);
+    $('.toast').last().toast('show');
+}
+
+function openProductCard(productId) {
+    // Find the product data from the DOM
+    const $productCard = $(`.product-item[data-product-id="${productId}"]`);
+    
+    if ($productCard.length === 0) {
+        showToast('Product not found', 'error');
+        return;
+    }
+    
+    // Extract product information from the card
+    const productName = $productCard.find('.product-title').text();
+    const productDescription = $productCard.find('.product-description').text();
+    const productPrice = $productCard.find('.product-price').text();
+    const productStock = $productCard.find('.product-stock').text();
+    const productStatus = $productCard.find('.product-status').text().trim();
+    const statusClass = $productCard.find('.product-status').attr('class').split(' ').find(cls => cls.startsWith('status-'));
+    
+    // Build the modal content
+    const modalContent = `
+        <div class="row">
+            <div class="col-md-4">
+                <div class="product-image-large text-center p-4" style="background: linear-gradient(45deg, #f0f9ff, #e0f2fe); border-radius: 10px;">
+                    ${$productCard.find('.product-image i').prop('outerHTML')}
+                </div>
+            </div>
+            <div class="col-md-8">
+                <h3 class="mb-3">${productName}</h3>
+                <div class="mb-3">
+                    <span class="badge ${statusClass === 'status-published' ? 'bg-success' : statusClass === 'status-draft' ? 'bg-warning' : 'bg-danger'} mb-2">
+                        ${productStatus}
+                    </span>
+                </div>
+                <p class="text-muted mb-3">${productDescription}</p>
+                <div class="row">
+                    <div class="col-6">
+                        <h5 class="text-success">${productPrice}</h5>
+                        <small class="text-muted">Price</small>
+                    </div>
+                    <div class="col-6">
+                        <h6>${productStock}</h6>
+                        <small class="text-muted">Stock</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <hr>
+        <div class="row mt-3">
+            <div class="col-12">
+                <h6>Quick Actions</h6>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary btn-sm" onclick="editProduct(${productId})">
+                        <i class="fas fa-edit me-1"></i>Edit Details
+                    </button>
+                    ${statusClass === 'status-draft' ? `
+                    <button class="btn btn-success btn-sm" onclick="publishProduct(${productId})">
+                        <i class="fas fa-upload me-1"></i>Publish Now
+                    </button>
+                    ` : ''}
+                    <button class="btn btn-outline-info btn-sm" onclick="duplicateProduct(${productId})">
+                        <i class="fas fa-copy me-1"></i>Duplicate
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Update modal content and show
+    $('#productDetailTitle').html(`<i class="fas fa-box me-2"></i>${productName}`);
+    $('#productDetailBody').html(modalContent);
+    $('#editProductBtn').attr('onclick', `editProduct(${productId})`);
+    $('#productDetailModal').modal('show');
+}
+
+function duplicateProduct(productId) {
+    if (confirm('Create a copy of this product as a draft?')) {
+        const $productCard = $(`.product-item[data-product-id="${productId}"]`);
+        const productName = $productCard.find('.product-title').text();
+        
+        showToast(`Creating a copy of "${productName}"...`, 'info');
+        
+        // You can implement the actual duplication logic here
+        setTimeout(() => {
+            showToast('Product duplicated successfully!', 'success');
+            $('#productDetailModal').modal('hide');
+        }, 1500);
+    }
+}
+
+// Reset form when modal is hidden
+$('#addProductModal').on('hidden.bs.modal', function() {
+    $('#addProductForm')[0].reset();
+});
+</script>
+{% endblock %}
