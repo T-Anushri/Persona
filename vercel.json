@@ -1,12 +1,9 @@
 {
-  "version": 3,
+  "version": 2,
   "builds": [
     {
       "src": "run.py",
-      "use": "@vercel/python",
-      "config": {
-        "maxLambdaSize": "50mb"
-      }
+      "use": "@vercel/python"
     }
   ],
   "routes": [
