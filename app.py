@@ -875,6 +875,14 @@ def init_db():
         
         db.session.commit()
 
-if __name__ == '__main__':
-    init_db()
+# if __name__ == '__main__':
+#     init_db()
+#     app.run(debug=True, host='0.0.0.0', port=5000)
+import os
+
+IS_VERCEL = "VERCEL" in os.environ  # Vercel sets this environment variable
+
+if not IS_VERCEL:
+    # Only run locally
+    init_db()  # Optional: only if you want sample data locally
     app.run(debug=True, host='0.0.0.0', port=5000)
