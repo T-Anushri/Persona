@@ -882,3 +882,7 @@ def init_db():
 # if not IS_VERCEL:
 #     init_db()  # Optional: only if you want sample data locally
 #     app.run(debug=True, host='0.0.0.0', port=5000)
+
+# Ensure tables are created at startup (for serverless)
+with app.app_context():
+    db.create_all()
